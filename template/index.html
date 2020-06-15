@@ -39,7 +39,7 @@
 		<h1>Restaurant Manager</h1>
 		<div id="app">
 			<h2>Table Overview</h2>
-			<x-resturant :tables="tables"></x-resturant>
+			<x-resturant :tables="tables" name="resturant"></x-resturant>
 			<br>
 			<h3>New Party</h3>
 			<p>Fill the following form to allocate a table to a party that is waiting to be seated.</p>
@@ -61,19 +61,19 @@
 
 		<template id="xr">
 			<div class="restaurant">
-				<div v-for="table in tables" class="table">
-					<x-table :table="table"></x-table>
+				<div v-for="table in tables">
+					<x-table :capacity="table.capacity" class="table" :key="table.key"></x-table>
 				</div>
 			</div>
 		</template>
 
 		<template id="xt">
-			<div v-if="!table.available">
-				Occupied by {{ table.people }}
+			<div v-if="!available">
+				Occupied by {{ people }}
 				<br>
-				(free in {{ TimeOut(table.duration) }})
+				(free in {{ TimeOut(duration) }})
 				<br>
-				<button type="button" name="button" @click="Evict(table)">Evict</button>
+				<!-- <button type="button" name="button" @click="Evict(table)">Evict</button> -->
 			</div>
 			<div v-else>
 				Table Available
@@ -87,30 +87,47 @@
 			Vue.component('x-table', {
 				template: '#xt',
 				props: ['table'],
+				data() {
+					return {
+						available: true,
+						capacity: '',
+						people: '',
+						duration: '',
+						message: '',
+					}
+				},
 				methods: {
 					TimeOut(secs){
 						var minutes = Math.floor(secs/60)
 						var seconds = secs % 60
 						return minutes + ":" + seconds
 					},
-					Evict(table, clicked=true){
-						// Evivt the table
-						var message = table.message;
-						table.available = true
-						table.people = ''
-						table.duration = ''
-						table.message = ''
-						if (clicked){
-							alert(message)
-						}
-						return table
-					},
-					awaitTable(table){
+					async untilAvailable(table){
 						// Table Wait
 						setTimeout(() => {
 							return this.Evict(table, false)
 						}, table.duration * 1000);
 					},
+					Evict(clicked=true){
+						// Evict the table
+						var message = localStorage[this.$vnode.key].message;
+						localStorage[this.$vnode.key].available = true
+						localStorage[this.$vnode.key].people = ''
+						localStorage[this.$vnode.key].duration = ''
+						localStorage[this.$vnode.key].message = ''
+						if (clicked){
+							alert(message)
+						}
+						return localStorage[vm.$options.name]
+					},
+				},
+				created() {
+					localStorage[this.$vnode.key] = {
+						available: true,
+						people: '',
+						duration: '',
+						message: '',
+					}
 				},
 			});
 			Vue.component('x-resturant', {
@@ -129,14 +146,14 @@
 				el: '#app',
 				data: {
 					tables: [
-						{id: 1, capacity: 10, available: true, people: 0, duration: 0, message: ''},
-						{id: 2, capacity: 8, available: true, people: 0, duration: 0, message: ''},
-						{id: 3, capacity: 10, available: true, people: 0, duration: 0, message: ''},
-						{id: 4, capacity: 6, available: true, people: 0, duration: 0, message: ''},
-						{id: 5, capacity: 2, available: true, people: 0, duration: 0, message: ''},
-						{id: 6, capacity: 6, available: true, people: 0, duration: 0, message: ''},
-						{id: 7, capacity: 4, available: true, people: 0, duration: 0, message: ''},
-						{id: 8, capacity: 12, available: true, people: 0, duration: 0, message: ''},
+						{key: 'table1', capacity: 10},
+						{key: 'table2', capacity: 8},
+						{key: 'table3', capacity: 10},
+						{key: 'table4', capacity: 6},
+						{key: 'table5', capacity: 2},
+						{key: 'table6', capacity: 6},
+						{key: 'table7', capacity: 4},
+						{key: 'table8', capacity: 12},
 					],
 					party: {
 						people: '',
@@ -149,14 +166,13 @@
 						// get date from form
 						selection = 7
 						for (var i = 0; i < this.tables.length; i++){
-	            table = this.tables[i]
-							if (table.available){
-								if (this.party.people <= table.capacity && table.capacity < this.tables[selection].capacity){
+							if (this.tables[i].available){
+								if (this.party.people <= this.tables[i].capacity && this.tables[i].capacity < this.tables[selection].capacity){
 									selection = i
 								}
 							}
 	          }
-						if (this.party.people <= this.tables[selection].capacity && table.available) {
+						if (this.party.people <= this.tables[selection].capacity && this.tables[selection].available) {
 							// assign selected table
 							this.tables[selection].available = false
 							this.tables[selection].people = this.party.people
