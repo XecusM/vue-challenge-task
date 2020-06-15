@@ -58,30 +58,35 @@
 				</p>
 			</form>
 		</div>
+
 		<template id="xr">
 			<div class="restaurant">
 				<div v-for="table in tables" class="table">
-					<div v-if="!table.available">
-						Occupied by {{ table.people }}
-						<br>
-						(free in {{ TimeOut(table.duration) }})
-						<br>
-						<button type="button" name="button" @click="Evict(table)">Evict</button>
-					</div>
-					<div v-else>
-						Table Available
-						<br>
-						(capacity = {{ table.capacity }})
-					</div>
+					<x-table :table="table"></x-table>
 				</div>
+			</div>
+		</template>
+
+		<template id="xt">
+			<div v-if="!table.available">
+				Occupied by {{ table.people }}
+				<br>
+				(free in {{ TimeOut(table.duration) }})
+				<br>
+				<button type="button" name="button" @click="Evict(table)">Evict</button>
+			</div>
+			<div v-else>
+				Table Available
+				<br>
+				(capacity = {{ table.capacity }})
 			</div>
 		</template>
 
 		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 		<script>
-			Vue.component('x-resturant', {
-			  template: '#xr',
-			  props: ['tables'],
+			Vue.component('x-table', {
+				template: '#xt',
+				props: ['table'],
 				methods: {
 					TimeOut(secs){
 						var minutes = Math.floor(secs/60)
@@ -100,6 +105,18 @@
 						}
 						return table
 					},
+					awaitTable(table){
+						// Table Wait
+						setTimeout(() => {
+							return this.Evict(table, false)
+						}, table.duration * 1000);
+					},
+				},
+			});
+			Vue.component('x-resturant', {
+			  template: '#xr',
+			  props: ['tables'],
+				methods: {
 					awaitTable(table){
 						// Table Wait
 						setTimeout(() => {
