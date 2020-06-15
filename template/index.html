@@ -39,22 +39,7 @@
 		<h1>Restaurant Manager</h1>
 		<div id="app">
 			<h2>Table Overview</h2>
-			<div class="restaurant">
-				<div v-for="table in tables" class="table">
-					<div v-if="!table.available">
-						Occupied by {{ table.people }}
-						<br>
-						(free in {{ TimeOut(table.duration) }})
-						<br>
-						<button type="button" name="button" @click="Evict(table)">Evict</button>
-					</div>
-					<div v-else>
-						Table Available
-						<br>
-						(capacity = {{ table.capacity }})
-					</div>
-				</div>
-			</div>
+			<x-resturant :tables="tables"></x-resturant>
 			<br>
 			<h3>New Party</h3>
 			<p>Fill the following form to allocate a table to a party that is waiting to be seated.</p>
@@ -73,8 +58,56 @@
 				</p>
 			</form>
 		</div>
+		<template id="xr">
+			<div class="restaurant">
+				<div v-for="table in tables" class="table">
+					<div v-if="!table.available">
+						Occupied by {{ table.people }}
+						<br>
+						(free in {{ TimeOut(table.duration) }})
+						<br>
+						<button type="button" name="button" @click="Evict(table)">Evict</button>
+					</div>
+					<div v-else>
+						Table Available
+						<br>
+						(capacity = {{ table.capacity }})
+					</div>
+				</div>
+			</div>
+		</template>
+
 		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 		<script>
+			Vue.component('x-resturant', {
+			  template: '#xr',
+			  props: ['tables'],
+				methods: {
+					TimeOut(secs){
+						var minutes = Math.floor(secs/60)
+						var seconds = secs % 60
+						return minutes + ":" + seconds
+					},
+					Evict(table, clicked=true){
+						// Evivt the table
+						var message = table.message;
+						table.available = true
+						table.people = ''
+						table.duration = ''
+						table.message = ''
+						if (clicked){
+							alert(message)
+						}
+						return table
+					},
+					awaitTable(table){
+						// Table Wait
+						setTimeout(() => {
+							return this.Evict(table, false)
+						}, table.duration * 1000);
+					},
+				},
+			});
 			const app = new Vue({
 				el: '#app',
 				data: {
@@ -106,7 +139,7 @@
 								}
 							}
 	          }
-						if (this.party.people <= this.tables[selection].capacity) {
+						if (this.party.people <= this.tables[selection].capacity && table.available) {
 							// assign selected table
 							this.tables[selection].available = false
 							this.tables[selection].people = this.party.people
@@ -118,29 +151,6 @@
 						}	else{
 							alert("Can't find a table!!")
 						}
-					},
-					Evict(table, clicked=true){
-						// Evivt the table
-						var message = table.message;
-						table.available = true
-						table.people = ''
-						table.duration = ''
-						table.message = ''
-						if (clicked){
-							alert(message)
-						}
-						return table
-					},
-					awaitTable(table){
-						// Table Wait
-				    setTimeout(() => {
-				      return this.Evict(table, false)
-				    }, table.duration * 1000);
-					},
-					TimeOut(secs){
-						var minutes = Math.floor(secs/60)
-						var seconds = secs % 60
-						return minutes + ":" + seconds
 					},
 				},
 				created() {
