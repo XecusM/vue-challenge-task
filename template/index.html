@@ -71,27 +71,6 @@
 						x-table
 					></p>
 				</div>
-				<div v-if="0 < waitingList.length">
-					<h5>Waiting List</h5>
-					<div class="table-responsive-md">
-						<table class="table table-striped table-sm">
-							<tbody>
-								<tr>
-									<th scope=row>People</th>
-									<td>
-										<strong>
-											Duration
-										</strong>
-									</td>
-								</tr>
-								<tr v-for="item in waitingList">
-									<td>{{ item.people }}</td>
-									<td>{{ item.duration }}</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
 			</div>
 		</template>
 
@@ -197,12 +176,10 @@
 			  props: ['tables'],
 				data(){
 					return{
-						waitingList: [],
 					}
 				},
 				methods: {
 					async reserveTable(people, duration, message){
-						var index = this.waitingList.push({people: people, duration: duration, message: message}) - 1
 						var table = this.awaitTable(people, index)
 					},
 					awaitTable(size, index){
@@ -211,27 +188,7 @@
 							var table = JSON.parse(localStorage.getItem(tableName))
 							if (table.available) {
 								if (size <= table.capacity) {
-									// localStorage[tableName] = JSON.stringify({
-									// 	available: false,
-									// 	capacity: this.waitingList[index].capacity,
-									// 	people: this.waitingList[index].people,
-									// 	duration: this.waitingList[index].duration,
-									// 	message: this.waitingList[index].message,
-									// })
-									// this.waitingList.pop(index)
-									// return tableName
-									setTimeout(() => {
-										console.log(this.waitingList)
-										localStorage[tableName] = JSON.stringify({
-											available: false,
-											capacity: table.capacity,
-											people: this.waitingList[index].people,
-											duration: this.waitingList[index].duration,
-											message: this.waitingList[index].message,
-										})
-										// this.waitingList.pop(index)
 										return tableName
-									}, 5000);
 								}
 							}
 						}
