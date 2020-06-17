@@ -4,81 +4,116 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+		<!-- bootstrap -->
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
 		<link rel="stylesheet" href="main.css">
 		<style>
 			* {
 				font-family: 'Roboto';
 			}
-			#app{
-				display: grid;
-			}
-			.restaurant{
-				border: 2px solid red;
-				display: inline-block;
-				text-align: center;
-			}
-			.table{
-				padding: 5px;
-				margin: 5px;
-				border: 2px solid blue;
-				width: 20%;
-				min-height: 70px;
-				display: inline-block;
+			.card{
+				height: 200px;
 			}
 			.field{
-				height: 30px;
-				border: 1px solid gray;
-				width: 700px;
+				max-width: 700px;
 			}
 		</style>
 		<title>
 			Restaurant Manager
 		</title>
 	</head>
-	<body>
+	<body class="container mt-5">
 		<h1>Restaurant Manager</h1>
+		<hr>
 		<div id="app">
-			<h2>Table Overview</h2>
-			<x-resturant :tables="tables" name="resturant"></x-resturant>
+			<h3>Table Overview</h3>
+			<x-resturant :tables="tables" ref="resturant"></x-resturant>
+			<div class="text-right">
+				<p><
+					x-resturant
+				></p>
+			</div>
 			<br>
 			<h3>New Party</h3>
 			<p>Fill the following form to allocate a table to a party that is waiting to be seated.</p>
-			<form method="POST">
-				<p>
-					<input class="field" type="number" name="people" v-model="party.people" placeholder="Number of People (non-zero positive integer)" min="1" required>
-				</p>
-				<p>
-					<input class="field" type="number" name="duration" v-model="party.duration" placeholder="Duration of stay in seconds (positive number)" min="1" required>
-				</p>
-				<p>
-					<input class="field" type="text" name="message" v-model="party.message" placeholder="Fuss message if evicted (text)" required>
-				</p>
-				<p>
-					<button type="button" name="button" @click.prevent="NewParty">Add</button>
-				</p>
+			<form v-on:submit.prevent="submitForm">
+				<div class="form-group">
+					<label for="people">Number of people*:</label>
+					<input id="people" type="number" name="people" class="form-control field" v-model="party.people" placeholder="Number of People (non-zero positive integer)" min="1" required>
+				</div>
+				<div class="form-group">
+					<label for="duration">Duration to stay*:</label>
+					<input id="duration" type="number" name="duration" class="form-control field" v-model="party.duration" placeholder="Duration of stay in seconds (positive number)" min="1" required>
+				</div>
+				<div class="form-group">
+					<label for="message">Fuss message*:</label>
+					<input id="message" type="text" name="message" class="form-control field" v-model="party.message" placeholder="Fuss message if evicted (text)" required>
+				</div>
+				<p></p>
+				<input type="submit" name="button" class="btn btn-dark" value="Add">
 			</form>
 		</div>
 
 		<template id="xr">
-			<div class="restaurant">
-				<div v-for="table in tables">
-					<x-table :capacity="table.capacity" class="table" :key="table.key"></x-table>
+			<div class="jumbotron text-center">
+				<div class="row">
+					<div v-for="table in tables" class="card col-md-3">
+						<x-table :capacity="table.capacity" :key="table.name" :name="table.name" :ref="table.name"></x-table>
+					</div>
+				</div>
+				<br>
+				<div class="text-right">
+					<p><
+						x-table
+					></p>
+				</div>
+				<div v-if="0 < waitingList.length">
+					<h5>Waiting List</h5>
+					<div class="table-responsive-md">
+						<table class="table table-striped table-sm">
+							<tbody>
+								<tr>
+									<th scope=row>People</th>
+									<td>
+										<strong>
+											Duration
+										</strong>
+									</td>
+								</tr>
+								<tr v-for="item in waitingList">
+									<td>{{ item.people }}</td>
+									<td>{{ item.duration }}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</template>
 
 		<template id="xt">
-			<div v-if="!available">
-				Occupied by {{ people }}
-				<br>
-				(free in {{ TimeOut(duration) }})
-				<br>
-				<!-- <button type="button" name="button" @click="Evict(table)">Evict</button> -->
-			</div>
-			<div v-else>
-				Table Available
-				<br>
-				(capacity = {{ table.capacity }})
+			<div class="">
+				<div class="card-header">
+					<h5>{{ name }}</h5>
+				</div>
+				<div class="card-body">
+					<div v-if="available">
+						Table Available
+						<br>
+						(capacity = {{ capacity }})
+					</div>
+					<div v-else>
+						Occupied by {{ people }}
+						<br>
+						(free in {{ TimeOut(duration) }})
+						<hr>
+						<button type="button" class="btn btn-dark" name="button" @click="Evict()">Evict</button>
+					</div>
+				</div>
 			</div>
 		</template>
 
@@ -86,59 +121,120 @@
 		<script>
 			Vue.component('x-table', {
 				template: '#xt',
-				props: ['table'],
+				props: ['name', 'capacity'],
 				data() {
 					return {
 						available: true,
-						capacity: '',
 						people: '',
 						duration: '',
 						message: '',
+						tableData: '',
 					}
 				},
 				methods: {
 					TimeOut(secs){
+						// Show time in min and seconds
 						var minutes = Math.floor(secs/60)
 						var seconds = secs % 60
 						return minutes + ":" + seconds
 					},
-					async untilAvailable(table){
+					async untilAvailable(){
 						// Table Wait
 						setTimeout(() => {
-							return this.Evict(table, false)
-						}, table.duration * 1000);
+							return this.Evict(false)
+						}, this.duration * 1000);
 					},
 					Evict(clicked=true){
 						// Evict the table
-						var message = localStorage[this.$vnode.key].message;
-						localStorage[this.$vnode.key].available = true
-						localStorage[this.$vnode.key].people = ''
-						localStorage[this.$vnode.key].duration = ''
-						localStorage[this.$vnode.key].message = ''
+						var table = JSON.parse(localStorage.getItem(this.$vnode.key))
+						var message = table.message;
+						localStorage[this.$vnode.key] = JSON.stringify({
+							available: true,
+							capacity: '',
+							people: '',
+							duration: '',
+							message: '',
+						})
 						if (clicked){
 							alert(message)
 						}
-						return localStorage[vm.$options.name]
+						return localStorage[this.$vnode.key]
+					},
+				},
+				mounted() {
+					// watch table avaliability
+					this.tableData = localStorage[this.$vnode.key]
+					window.addEventListener("storage", this.onStorageUpdate);
+				 },
+				 beforeDestroy() {
+				    window.removeEventListener("storage", this.onStorageUpdate);
+					},
+				watch: {
+					tableData(newTable){
+						// change status of the table
+						var table = JSON.parse(localStorage.getItem(this.$vnode.key))
+						this.available = table.available
+						this.people = table.capacity
+						this.duration = table.people
+						this.message = table.message
 					},
 				},
 				created() {
-					localStorage[this.$vnode.key] = {
-						available: true,
-						people: '',
-						duration: '',
-						message: '',
-					}
+					// inititate data for this table
+					localStorage[this.$vnode.key] = JSON.stringify({
+						available: this.available,
+						capacity: this.capacity,
+						people: this.people,
+						duration: this.duration,
+						message: this.message,
+					})
+					this.tableData = localStorage[this.$vnode.key]
 				},
 			});
 			Vue.component('x-resturant', {
 			  template: '#xr',
+				name: "resturant",
 			  props: ['tables'],
+				data(){
+					return{
+						waitingList: [],
+					}
+				},
 				methods: {
-					awaitTable(table){
-						// Table Wait
-						setTimeout(() => {
-							return this.Evict(table, false)
-						}, table.duration * 1000);
+					async reserveTable(people, duration, message){
+						var index = this.waitingList.push({people: people, duration: duration, message: message}) - 1
+						var table = this.awaitTable(people, index)
+					},
+					awaitTable(size, index){
+						for (var i = 0; i < this.tables.length; i++) {
+							var tableName = this.tables[i].name
+							var table = JSON.parse(localStorage.getItem(tableName))
+							if (table.available) {
+								if (size <= table.capacity) {
+									// localStorage[tableName] = JSON.stringify({
+									// 	available: false,
+									// 	capacity: this.waitingList[index].capacity,
+									// 	people: this.waitingList[index].people,
+									// 	duration: this.waitingList[index].duration,
+									// 	message: this.waitingList[index].message,
+									// })
+									// this.waitingList.pop(index)
+									// return tableName
+									setTimeout(() => {
+										console.log(this.waitingList)
+										localStorage[tableName] = JSON.stringify({
+											available: false,
+											capacity: table.capacity,
+											people: this.waitingList[index].people,
+											duration: this.waitingList[index].duration,
+											message: this.waitingList[index].message,
+										})
+										// this.waitingList.pop(index)
+										return tableName
+									}, 5000);
+								}
+							}
+						}
 					},
 				},
 			});
@@ -146,14 +242,14 @@
 				el: '#app',
 				data: {
 					tables: [
-						{key: 'table1', capacity: 10},
-						{key: 'table2', capacity: 8},
-						{key: 'table3', capacity: 10},
-						{key: 'table4', capacity: 6},
-						{key: 'table5', capacity: 2},
-						{key: 'table6', capacity: 6},
-						{key: 'table7', capacity: 4},
-						{key: 'table8', capacity: 12},
+						{name: 'table1', capacity: 10},
+						{name: 'table2', capacity: 8},
+						{name: 'table3', capacity: 10},
+						{name: 'table4', capacity: 6},
+						{name: 'table5', capacity: 2},
+						{name: 'table6', capacity: 6},
+						{name: 'table7', capacity: 4},
+						{name: 'table8', capacity: 12},
 					],
 					party: {
 						people: '',
@@ -162,44 +258,15 @@
 					},
 				},
 				methods: {
-					NewParty() {
-						// get date from form
-						selection = 7
-						for (var i = 0; i < this.tables.length; i++){
-							if (this.tables[i].available){
-								if (this.party.people <= this.tables[i].capacity && this.tables[i].capacity < this.tables[selection].capacity){
-									selection = i
-								}
-							}
-	          }
-						if (this.party.people <= this.tables[selection].capacity && this.tables[selection].available) {
-							// assign selected table
-							this.tables[selection].available = false
-							this.tables[selection].people = this.party.people
-							this.tables[selection].duration = this.party.duration
-							this.tables[selection].message = this.party.message
-							this.party.people = ''
-							this.party.duration = ''
-							this.party.message = ''
-						}	else{
-							alert("Can't find a table!!")
-						}
+					submitForm(){
+						this.$refs.resturant.reserveTable(
+																							this.party.people,
+																							this.party.duration,
+																							this.party.message)
+						this.party.people = ''
+						this.party.duration = ''
+						this.party.message = ''
 					},
-				},
-				created() {
-					// Refresh evenry 1 sec
-			    setInterval(() => {
-						for (var i = 0; i < this.tables.length; i++) {
-							if (1 < this.tables[i].duration) {
-								this.tables[i].duration--
-							} else{
-								this.tables[i].available = true
-								this.tables[i].people = ''
-								this.tables[i].duration = ''
-								this.tables[i].message = ''
-							}
-						}
-					}, 1000)
 				},
 				delimiters: ['{{', '}}'],
 			});
